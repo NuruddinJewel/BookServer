@@ -101,34 +101,34 @@ async function run() {
 
         //Purchase History
 
-        // app.get('/user/history', async (req, res) => {
-        //     try {
+        app.get('/user/history', async (req, res) => {
+            try {
 
-        //         const dummyHistory = [
-        //             {
-        //                 _id: "tx_1",
-        //                 transactionId: "ch_3Mv2b1Lkd90xPq",
-        //                 bookTitle: "The Great Gatsby",
-        //                 purchaseDate: "2026-06-15T08:30:00.000Z",
-        //                 amount: 14.99,
-        //                 status: "success"
-        //             },
-        //             {
-        //                 _id: "tx_2",
-        //                 transactionId: "ch_4Nn3c2Mkd91yRt",
-        //                 bookTitle: "Atomic Habits",
-        //                 purchaseDate: "2026-06-18T14:45:00.000Z",
-        //                 amount: 9.99,
-        //                 status: "success"
-        //             }
-        //         ];
+                const dummyHistory = [
+                    {
+                        _id: "tx_1",
+                        transactionId: "ch_3Mv2b1Lkd90xPq",
+                        bookTitle: "The Great Gatsby",
+                        purchaseDate: "2026-06-15T08:30:00.000Z",
+                        amount: 14.99,
+                        status: "success"
+                    },
+                    {
+                        _id: "tx_2",
+                        transactionId: "ch_4Nn3c2Mkd91yRt",
+                        bookTitle: "Atomic Habits",
+                        purchaseDate: "2026-06-18T14:45:00.000Z",
+                        amount: 9.99,
+                        status: "success"
+                    }
+                ];
 
-        //         res.status(200).json(dummyHistory);
-        //     } catch (error) {
-        //         console.error("Error fetching history:", error);
-        //         res.status(500).json({ error: "Internal Server Error" });
-        //     }
-        // });
+                res.status(200).json(dummyHistory);
+            } catch (error) {
+                console.error("Error fetching history:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
 
     } catch (error) {
         console.error("Database connection failed:", error);
