@@ -186,6 +186,52 @@ async function run() {
             }
         });
 
+        //User Profile
+
+        //  User Profile Data(GET)
+        app.get('/user/profile', async (req, res) => {
+            try {
+                /* For JWT Authentication Logic:
+                const userId = req.user.id;
+                const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+                */
+
+                // Dummy Data
+                const dummyUser = {
+                    _id: "user_123",
+                    name: "John Doe",
+                    email: "johndoe@example.com",
+                    createdAt: "2026-06-20T12:00:00.000Z"
+                };
+
+                res.status(200).json(dummyUser);
+            } catch (error) {
+                console.error("Error fetching profile:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
+        // User Profile Data Update
+        app.put('/user/profile', async (req, res) => {
+            try {
+                const { name } = req.body; // User Name
+                console.log(`Updating profile name to: ${name}`);
+
+                /* For Database:
+                const userId = req.user.id;
+                const result = await usersCollection.updateOne(
+                    { _id: new ObjectId(userId) },
+                    { $set: { name: name } }
+                );
+                */
+
+                res.status(200).json({ success: true, message: "Profile updated successfully" });
+            } catch (error) {
+                console.error("Error updating profile:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
     } catch (error) {
         console.error("Database connection failed:", error);
     }
