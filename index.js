@@ -24,25 +24,50 @@ const client = new MongoClient(uri, {
 });
 
 app.get('/', (req, res) => {
-    res.send('Hello World!')
-})
+    res.send('Fable Server is Running!')
+});
 
 async function run() {
     try {
-        // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
-        // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
-    } finally {
-        // Ensures that the client will close when you finish/error
-        // await client.close();
+
+        const database = client.db(process.env.DB_NAME);
+        const ebooksCollection = database.collection("ebooks");
+
+        app.get('/ebooks', async (req, res) => {
+            try {
+                const books = await ebooksCollection.find({}).toArray();
+                res.status(200).json(books);
+            } catch (error) {
+                console.error("Error fetching books:", error);
+                res.status(500).json({ error: "Failed to fetch books" });
+            }
+        });
+
+        // Ebooks Details
+        // app.get('/ebooks/:id', async (req, res) => {
+        //     try {
+        //         const bookId = req.params.id;
+        //         const book = await ebooksCollection.findOne({ id: Number(bookId) });
+
+        //         if (!book) {
+        //             return res.status(404).json({ error: "Book not found" });
+        //         }
+        //         res.status(200).json(book);
+        //     } catch (error) {
+        //         console.error("Error fetching book detail:", error);
+        //         res.status(500).json({ error: "Server error" });
+        //     }
+        // });
+
+    } catch (error) {
+        console.error("Database connection failed:", error);
     }
 }
 run().catch(console.dir);
 
-
-
 app.listen(PORT, () => {
-    console.log(`Example app listening on port ${PORT}`)
-})
+    console.log(`Fable Server listening on port ${PORT}`);
+});
