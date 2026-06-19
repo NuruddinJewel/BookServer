@@ -62,6 +62,25 @@ async function run() {
             }
         });
 
+        //Books By Genre
+        app.get('/ebooks', async (req, res) => {
+            try {
+                const { genre } = req.query;
+                let query = {};
+
+                if (genre) {
+                    // Case-Sensitive Match (Regex)
+                    query.category = { $regex: new RegExp(`^${genre}$`, 'i') };
+                }
+
+                const books = await ebooksCollection.find(query).toArray();
+                res.status(200).json(books);
+            } catch (error) {
+                console.error("Error fetching books:", error);
+                res.status(500).json({ error: "Server error" });
+            }
+        });
+
     } catch (error) {
         console.error("Database connection failed:", error);
     }
