@@ -47,20 +47,20 @@ async function run() {
         });
 
         // Ebooks Details
-        // app.get('/ebooks/:id', async (req, res) => {
-        //     try {
-        //         const bookId = req.params.id;
-        //         const book = await ebooksCollection.findOne({ id: Number(bookId) });
+        app.get('/ebooks/:id', async (req, res) => {
+            try {
+                const bookId = req.params.id;
+                const book = await ebooksCollection.findOne({ id: Number(bookId) });
 
-        //         if (!book) {
-        //             return res.status(404).json({ error: "Book not found" });
-        //         }
-        //         res.status(200).json(book);
-        //     } catch (error) {
-        //         console.error("Error fetching book detail:", error);
-        //         res.status(500).json({ error: "Server error" });
-        //     }
-        // });
+                if (!book) {
+                    return res.status(404).json({ error: "Book not found" });
+                }
+                res.status(200).json(book);
+            } catch (error) {
+                console.error("Error fetching book detail:", error);
+                res.status(500).json({ error: "Server error" });
+            }
+        });
 
     } catch (error) {
         console.error("Database connection failed:", error);
