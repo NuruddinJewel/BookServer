@@ -232,6 +232,114 @@ async function run() {
             }
         });
 
+        //Writer
+
+        // (GET)
+        app.get('/writer/my-books', async (req, res) => {
+            try {
+                /*  JWT Authentication Logic
+                const writerId = req.user.id; // Logged in writer ID
+                const myBooks = await ebooksCollection.find({ writerId: writerId }).toArray();
+                */
+
+                // DummyBooks
+                const dummyWriterBooks = [
+                    {
+                        _id: "book_writer_01",
+                        title: "The Silent Echoes",
+                        category: "Mystery",
+                        price: 12.50,
+                        rating: 4.8,
+                        coverImage: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=500",
+                        status: "approved",
+                        writerId: "writer_123"
+                    },
+                    {
+                        _id: "book_writer_02",
+                        title: "Shadows of Tomorrow",
+                        category: "Sci-Fi",
+                        price: 8.99,
+                        rating: 0.0,
+                        coverImage: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=500",
+                        status: "pending",
+                        writerId: "writer_123"
+                    }
+                ];
+
+
+                res.status(200).json(dummyWriterBooks);
+
+            } catch (error) {
+                console.error("Error fetching writer books:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
+        // Writer (DELETE)
+        app.delete('/writer/books/:id', async (req, res) => {
+            try {
+                const bookId = req.params.id;
+                console.log(`Request to delete book ID by writer: ${bookId}`);
+
+                /*  MongoDB Operation Logic:
+                const result = await ebooksCollection.deleteOne({ _id: new ObjectId(bookId) });
+                */
+
+                res.status(200).json({ success: true, message: "Ebook deleted successfully" });
+
+            } catch (error) {
+                console.error("Error deleting book by writer:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
+        // Writer Book Details GET
+        app.get('/writer/books/:id', async (req, res) => {
+            try {
+                const bookId = req.params.id;
+
+                /* Database Integration:
+                const book = await ebooksCollection.findOne({ _id: new ObjectId(bookId) });
+                */
+
+                // Dummy Books Details
+                const dummyBookDetails = {
+                    _id: bookId,
+                    title: "The Silent Echoes",
+                    category: "Mystery",
+                    price: 12.50
+                };
+
+                res.status(200).json(dummyBookDetails);
+            } catch (error) {
+                console.error("Error fetching book details:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
+        // Writer Book Info Update (PUT)
+        app.put('/writer/books/:id', async (req, res) => {
+            try {
+                const bookId = req.params.id;
+                const { title, category, price } = req.body;
+
+                console.log(`Updating Book ID ${bookId} with data:`, { title, category, price });
+
+                /* Database Logic
+                const result = await ebooksCollection.updateOne(
+                    { _id: new ObjectId(bookId) },
+                    { $set: { title, category, price, status: 'pending' } } 
+                    // Status 'pending' (bookEdit)
+                );
+                */
+
+                res.status(200).json({ success: true, message: "Book updated successfully" });
+            } catch (error) {
+                console.error("Error updating book details:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
     } catch (error) {
         console.error("Database connection failed:", error);
     }
