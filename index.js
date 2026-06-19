@@ -130,6 +130,62 @@ async function run() {
             }
         });
 
+        //User Bookmark Add or Delete
+
+        //  (GET)
+        app.get('/user/bookmarks', async (req, res) => {
+            try {
+
+                const dummyBookmarks = [
+                    {
+                        _id: "b_bookmark_01",
+                        userId: "user_123",
+                        book: {
+                            _id: "64f1a2b3c4d5e6f7a8b9c001", //  MongoDB ObjectId 
+                            title: "The Great Gatsby",
+                            author: "F. Scott Fitzgerald",
+                            coverImage: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=500"
+                        }
+                    },
+                    {
+                        _id: "b_bookmark_02",
+                        userId: "user_123",
+                        book: {
+                            _id: "64f1a2b3c4d5e6f7a8b9c002",
+                            title: "Sci-Fi Chronicles",
+                            author: "H. G. Wells",
+                            coverImage: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=500"
+                        }
+                    }
+                ];
+
+                // Test dummy bookmarks const dummyBookmarks = [];
+                res.status(200).json(dummyBookmarks);
+
+            } catch (error) {
+                console.error("Error fetching bookmarks:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
+        //  (DELETE)
+        app.delete('/user/bookmarks/:id', async (req, res) => {
+            try {
+                const bookmarkId = req.params.id;
+                console.log(`Request to delete bookmark ID: ${bookmarkId}`);
+
+                /*  MongoDB Connection
+                const result = await bookmarksCollection.deleteOne({ _id: new ObjectId(bookmarkId) });
+                */
+
+                res.status(200).json({ success: true, message: "Bookmark removed successfully" });
+
+            } catch (error) {
+                console.error("Error deleting bookmark:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
     } catch (error) {
         console.error("Database connection failed:", error);
     }
