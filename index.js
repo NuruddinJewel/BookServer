@@ -377,6 +377,65 @@ async function run() {
             }
         });
 
+        //Writer Sales History
+
+        // Writer Sales (GET)
+        app.get('/writer/sales-report', async (req, res) => {
+            try {
+                /*  JWT and MongoDB (Aggregation):
+                const writerId = req.user.id;
+                
+                // purchases Collection (Only Writer Books)
+                const history = await purchasesCollection.find({ writerId: writerId }).sort({ purchaseDate: -1 }).toArray();
+                
+                // Total Revenue এবং Sales Count Logic
+                const totalCopiesSold = history.length;
+                const totalRevenue = history.reduce((sum, item) => sum + item.amount, 0);
+                */
+
+                // Project Test and Dummy Report
+                const dummySalesReport = {
+                    stats: {
+                        totalRevenue: 238.89,
+                        totalCopiesSold: 19,
+                        thisMonthRevenue: 48.97
+                    },
+                    history: [
+                        {
+                            _id: "sale_001",
+                            bookTitle: "The Silent Echoes",
+                            purchaseDate: "2026-06-19T10:15:30.000Z",
+                            buyerId: "user_buyer_999a",
+                            amount: 12.50
+                        },
+                        {
+                            _id: "sale_002",
+                            bookTitle: "The Silent Echoes",
+                            purchaseDate: "2026-06-14T16:45:00.000Z",
+                            buyerId: "user_buyer_888b",
+                            amount: 12.50
+                        },
+                        {
+                            _id: "sale_003",
+                            bookTitle: "Shadows of Tomorrow",
+                            purchaseDate: "2026-06-02T05:20:10.000Z",
+                            buyerId: "user_buyer_777c",
+                            amount: 8.99
+                        }
+                    ]
+                };
+
+                // Dummy Sales Test:
+                // const dummySalesReport = { stats: { totalRevenue: 0, totalCopiesSold: 0, thisMonthRevenue: 0 }, history: [] };
+
+                res.status(200).json(dummySalesReport);
+
+            } catch (error) {
+                console.error("Error generating sales report:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
     } catch (error) {
         console.error("Database connection failed:", error);
     }
