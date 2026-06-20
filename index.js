@@ -573,6 +573,98 @@ async function run() {
             }
         });
 
+        // ==========================================
+        //          ADMIN EBOOK MANAGEMENT ROUTES
+        // ==========================================
+
+        // System Book List (GET)
+        app.get('/admin/ebooks', async (req, res) => {
+            try {
+                /* Database Code:
+                // Catalog Book (Approved, Pending, Rejected) Search
+                const allBooks = await ebooksCollection.find({}).sort({ createdAt: -1 }).toArray();
+                */
+
+                // Dummy Catalog
+                const dummyCatalog = [
+                    {
+                        _id: "book_writer_01",
+                        title: "The Silent Echoes",
+                        category: "Mystery",
+                        price: 12.50,
+                        coverImage: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=500",
+                        status: "approved",
+                        writerId: "writer_123"
+                    },
+                    {
+                        _id: "book_writer_02",
+                        title: "Shadows of Tomorrow",
+                        category: "Sci-Fi",
+                        price: 8.99,
+                        coverImage: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=500",
+                        status: "pending",
+                        writerId: "writer_123"
+                    },
+                    {
+                        _id: "book_writer_03",
+                        title: "Unpublished Draft Secrets",
+                        category: "History",
+                        price: 15.00,
+                        coverImage: "",
+                        status: "rejected",
+                        writerId: "writer_456"
+                    }
+                ];
+
+                res.status(200).json(dummyCatalog);
+            } catch (error) {
+                console.error("Error fetching catalog for admin:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
+        // Book Status Change (PUT) -> Approve / Reject
+        app.put('/admin/ebooks/:id/status', async (req, res) => {
+            try {
+                const bookId = req.params.id;
+                const { status } = req.body; // 'approved' or 'rejected'
+
+                console.log(`Admin updated Book ID: ${bookId} status to: ${status}`);
+
+                /* MongoDB Operation Logic
+                const result = await ebooksCollection.updateOne(
+                    { _id: new ObjectId(bookId) },
+                    { $set: { status: status } }
+                );
+                */
+
+                res.status(200).json({ success: true, message: `Book status updated to ${status}` });
+            } catch (error) {
+                console.error("Error updating book status by admin:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
+        // Book Delete From System (DELETE)
+        app.delete('/admin/ebooks/:id', async (req, res) => {
+            try {
+                const bookId = req.params.id;
+                console.log(`Admin requested to permanently delete Book ID: ${bookId}`);
+
+                /* MongoDB Logic
+                const result = await ebooksCollection.deleteOne({ _id: new ObjectId(bookId) });
+                */
+
+                res.status(200).json({ success: true, message: "Book deleted permanently from system" });
+            } catch (error) {
+                console.error("Error deleting book by admin:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
+
+
+
 
 
 
