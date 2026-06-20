@@ -342,7 +342,7 @@ async function run() {
 
         //Writer POST Books
 
-        // Writer NEW Book Updload (POST)
+        // Writer NEW Book Upload (POST)
         app.post('/writer/books', async (req, res) => {
             try {
                 const { title, category, price, coverImage } = req.body;
@@ -393,7 +393,7 @@ async function run() {
                 const totalRevenue = history.reduce((sum, item) => sum + item.amount, 0);
                 */
 
-                // Project Test and Dummy Report
+                // Project Test 
                 const dummySalesReport = {
                     stats: {
                         totalRevenue: 238.89,
@@ -425,13 +425,70 @@ async function run() {
                     ]
                 };
 
-                // Dummy Sales Test:
+                // Dummy Sales Test
                 // const dummySalesReport = { stats: { totalRevenue: 0, totalCopiesSold: 0, thisMonthRevenue: 0 }, history: [] };
 
                 res.status(200).json(dummySalesReport);
 
             } catch (error) {
                 console.error("Error generating sales report:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
+        //Writer Bookmarks
+        // Writer BookMark List (GET)
+        app.get('/writer/bookmarks', async (req, res) => {
+            try {
+                /* Database Integration Logic:
+                const writerId = req.user.id;
+                const bookmarks = await bookmarksCollection.find({ userId: writerId }).toArray();
+                */
+
+                // Dummy Data
+                const dummyWriterBookmarks = [
+                    {
+                        _id: "wb_01",
+                        userId: "writer_123",
+                        book: {
+                            _id: "64f1a2b3c4d5e6f7a8b9c991",
+                            title: "The Art of Fiction",
+                            author: "John Gardner",
+                            coverImage: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=500"
+                        }
+                    },
+                    {
+                        _id: "wb_02",
+                        userId: "writer_123",
+                        book: {
+                            _id: "64f1a2b3c4d5e6f7a8b9c992",
+                            title: "Storytelling Masterclass",
+                            author: "Robert McKee",
+                            coverImage: "https://images.unsplash.com/photo-1476275466078-4007374efbbe?w=500"
+                        }
+                    }
+                ];
+
+                res.status(200).json(dummyWriterBookmarks);
+            } catch (error) {
+                console.error("Error fetching writer bookmarks:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
+        // Writer BookMarks (DELETE)
+        app.delete('/writer/bookmarks/:id', async (req, res) => {
+            try {
+                const bookmarkId = req.params.id;
+                console.log(`Deleting writer bookmark ID: ${bookmarkId}`);
+
+                /* Database Code
+                const result = await bookmarksCollection.deleteOne({ _id: new ObjectId(bookmarkId) });
+                */
+
+                res.status(200).json({ success: true, message: "Bookmark removed successfully" });
+            } catch (error) {
+                console.error("Error deleting writer bookmark:", error);
                 res.status(500).json({ error: "Internal Server Error" });
             }
         });
