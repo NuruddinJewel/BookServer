@@ -663,6 +663,53 @@ async function run() {
         });
 
 
+        // ==========================================
+        //          ADMIN TRANSACTION ROUTES
+        // ==========================================
+
+        // Transaction History (GET)
+        app.get('/admin/transactions', async (req, res) => {
+            try {
+                /* Databse Integration
+                // Transaction History Sort
+                const history = await transactionsCollection.find({}).sort({ date: -1 }).toArray();
+                */
+
+                // Dummy Transactions
+                const dummyTransactions = [
+                    {
+                        _id: "tx_001",
+                        transactionId: "TXN-893A-K92",
+                        type: "purchase",             // Reader Buy Books
+                        email: "buyer.reader@example.com",
+                        amount: 12.50,
+                        date: "2026-06-20T14:22:00.000Z"
+                    },
+                    {
+                        _id: "tx_002",
+                        transactionId: "TXN-411B-L05",
+                        type: "publishing fee",       // Writer Publishing fee
+                        email: "famous.writer@example.com",
+                        amount: 25.00,
+                        date: "2026-06-19T09:11:00.000Z"
+                    },
+                    {
+                        _id: "tx_003",
+                        transactionId: "TXN-772C-P94",
+                        type: "purchase",
+                        email: "another.reader@example.com",
+                        amount: 8.99,
+                        date: "2026-06-18T18:45:30.000Z"
+                    }
+                ];
+
+                res.status(200).json(dummyTransactions);
+            } catch (error) {
+                console.error("Error generating transaction ledger:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
 
 
 
