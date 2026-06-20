@@ -711,6 +711,83 @@ async function run() {
         });
 
 
+        // ==========================================
+        //        ADMIN ANALYTICS & CHARTS API
+        // ==========================================
+
+        app.get('/admin/analytics', async (req, res) => {
+            try {
+                // ==============================================================
+                // Option A :  (MongoDB) Logic 
+                // ==============================================================
+                /*
+                // Monthly Sales Collection (Transaction Collection)
+                const salesData = await transactionsCollection.aggregate([
+                    { $match: { type: 'purchase' } }, // Sales Data Filter
+                    {
+                        $group: {
+                            _id: { $month: "$date" }, // group by month
+                            sales: { $sum: "$amount" } 
+                        }
+                    },
+                    { $sort: { _id: 1 } } //  (Jan, Feb...)
+                ]).toArray();
+        
+                // Month Conversion (1, 2) -> (Jan, Feb) Logic
+        
+                //  Book By Category (E book Collection)
+                const genreData = await ebooksCollection.aggregate([
+                    {
+                        $group: {
+                            _id: "$genre", // Category by genre
+                            value: { $sum: 1 } 
+                        }
+                    },
+                    {
+                        $project: {
+                            name: "$_id", // Recharts-'_id'->'name' 
+                            value: 1,
+                            _id: 0
+                        }
+                    }
+                ]).toArray();
+        
+                // 
+                // return res.status(200).json({ sales: formattedSalesData, genres: genreData });
+                */
+
+
+                // ==============================================================
+                // Option B: Dummy Data (FrontEnd test)
+                // ==============================================================
+                const dummyAnalytics = {
+                    // Bar Chart
+                    sales: [
+                        { month: 'Jan', sales: 1200 },
+                        { month: 'Feb', sales: 1900 },
+                        { month: 'Mar', sales: 1500 },
+                        { month: 'Apr', sales: 2800 },
+                        { month: 'May', sales: 3200 },
+                        { month: 'Jun', sales: 4100 },
+                        { month: 'Jul', sales: 3800 }
+                    ],
+                    // Pie Chart
+                    genres: [
+                        { name: 'Mystery & Thriller', value: 145 },
+                        { name: 'Science Fiction', value: 98 },
+                        { name: 'Romance', value: 120 },
+                        { name: 'Biography', value: 65 },
+                        { name: 'Self-Help', value: 54 }
+                    ]
+                };
+
+                res.status(200).json(dummyAnalytics);
+
+            } catch (error) {
+                console.error("Error generating admin analytics:", error);
+                res.status(500).json({ error: "Failed to load visual reports" });
+            }
+        });
 
 
 
