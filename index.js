@@ -493,6 +493,89 @@ async function run() {
             }
         });
 
+        // ==========================================
+        //         ADMIN USER MANAGEMENT ROUTES
+        // ==========================================
+
+        // All User List (GET)
+        app.get('/admin/users', async (req, res) => {
+            try {
+                /* Database Code:
+                // Only Admin (Admin Verification Middleware)
+                const allUsers = await usersCollection.find({}).toArray();
+                */
+
+                // Test DummyUsers
+                const dummyUsers = [
+                    {
+                        _id: "user_001",
+                        name: "ABC",
+                        email: "abc@example.com",
+                        role: "user"
+                    },
+                    {
+                        _id: "writer_123",
+                        name: "PQR",
+                        email: "pqr@example.com",
+                        role: "writer"
+                    },
+                    {
+                        _id: "user_003",
+                        name: "XYZ",
+                        email: "xyz@example.com",
+                        role: "admin"
+                    }
+                ];
+
+                res.status(200).json(dummyUsers);
+            } catch (error) {
+                console.error("Error fetching users for admin:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
+        // User Role Change Route (PUT)
+        app.put('/admin/users/:id/role', async (req, res) => {
+            try {
+                const userId = req.params.id;
+                const { role } = req.body;
+
+                console.log(`Admin requested to change User ID: ${userId} role to: ${role}`);
+
+                /* MongoDB Operation Logic
+                const result = await usersCollection.updateOne(
+                    { _id: new ObjectId(userId) },
+                    { $set: { role: role } }
+                );
+                */
+
+                res.status(200).json({ success: true, message: "User role updated successfully" });
+            } catch (error) {
+                console.error("Error updating user role by admin:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
+        // User Account Delete (DELETE)
+        app.delete('/admin/users/:id', async (req, res) => {
+            try {
+                const userId = req.params.id;
+                console.log(`Admin requested to delete User ID: ${userId}`);
+
+                /* MongoDB Operation Logic
+                const result = await usersCollection.deleteOne({ _id: new ObjectId(userId) });
+                */
+
+                res.status(200).json({ success: true, message: "User account deleted successfully" });
+            } catch (error) {
+                console.error("Error deleting user by admin:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
+
+
+
     } catch (error) {
         console.error("Database connection failed:", error);
     }
