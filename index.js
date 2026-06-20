@@ -340,6 +340,43 @@ async function run() {
             }
         });
 
+        //Writer POST Books
+
+        // Writer NEW Book Updload (POST)
+        app.post('/writer/books', async (req, res) => {
+            try {
+                const { title, category, price, coverImage } = req.body;
+
+                // Database Object
+                const newEbook = {
+                    title,
+                    category,
+                    price: Number(price),
+                    coverImage,
+                    rating: 0.0,
+                    status: "pending",
+                    createdAt: new Date(),
+                    writerId: "writer_123"
+                };
+
+                console.log("Saving new ebook to database:", newEbook);
+
+                /* MONGODB Collection
+                const result = await ebooksCollection.insertOne(newEbook);
+                */
+
+                //
+                res.status(201).json({
+                    success: true,
+                    message: "Ebook uploaded successfully and is pending for review."
+                });
+
+            } catch (error) {
+                console.error("Error creating new ebook:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
     } catch (error) {
         console.error("Database connection failed:", error);
     }
