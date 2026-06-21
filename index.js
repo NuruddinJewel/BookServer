@@ -214,205 +214,535 @@ async function run() {
         //User Bookmark Add or Delete
 
         //  (GET)
+        // app.get('/user/bookmarks', async (req, res) => {
+        //     try {
+
+        //         const dummyBookmarks = [
+        //             {
+        //                 _id: "b_bookmark_01",
+        //                 userId: "user_123",
+        //                 book: {
+        //                     _id: "64f1a2b3c4d5e6f7a8b9c001", //  MongoDB ObjectId 
+        //                     title: "The Great Gatsby",
+        //                     author: "F. Scott Fitzgerald",
+        //                     coverImage: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=500"
+        //                 }
+        //             },
+        //             {
+        //                 _id: "b_bookmark_02",
+        //                 userId: "user_123",
+        //                 book: {
+        //                     _id: "64f1a2b3c4d5e6f7a8b9c002",
+        //                     title: "Sci-Fi Chronicles",
+        //                     author: "H. G. Wells",
+        //                     coverImage: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=500"
+        //                 }
+        //             }
+        //         ];
+
+        //         // Test dummy bookmarks const dummyBookmarks = [];
+        //         res.status(200).json(dummyBookmarks);
+
+        //     } catch (error) {
+        //         console.error("Error fetching bookmarks:", error);
+        //         res.status(500).json({ error: "Internal Server Error" });
+        //     }
+        // });
+
+        // //  (DELETE)
+        // app.delete('/user/bookmarks/:id', async (req, res) => {
+        //     try {
+        //         const bookmarkId = req.params.id;
+        //         console.log(`Request to delete bookmark ID: ${bookmarkId}`);
+
+        //         /*  MongoDB Connection
+        //         const result = await bookmarksCollection.deleteOne({ _id: new ObjectId(bookmarkId) });
+        //         */
+
+        //         res.status(200).json({ success: true, message: "Bookmark removed successfully" });
+
+        //     } catch (error) {
+        //         console.error("Error deleting bookmark:", error);
+        //         res.status(500).json({ error: "Internal Server Error" });
+        //     }
+        // });
+        //Updated
+        // Bookmark Add (POST)
+        app.post('/user/bookmarks', async (req, res) => {
+            try {
+                const { userId, ebookId } = req.body;
+
+                if (!userId || !ebookId) {
+                    return res.status(400).json({ error: "userId and ebookId are required" });
+                }
+                if (!ObjectId.isValid(ebookId)) {
+                    return res.status(400).json({ error: "Invalid book id" });
+                }
+
+                const existing = await bookmarksCollection.findOne({ userId, ebookId: new ObjectId(ebookId) });
+                if (existing) {
+                    return res.status(200).json({ success: true, note: "already bookmarked" });
+                }
+
+                const newBookmark = {
+                    userId,
+                    ebookId: new ObjectId(ebookId),
+                    createdAt: new Date(),
+                };
+
+                const result = await bookmarksCollection.insertOne(newBookmark);
+                res.status(201).json({ success: true, bookmarkId: result.insertedId });
+            } catch (error) {
+                console.error("Error adding bookmark:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
+        // Bookmark List (GET) - full book details shoho
         app.get('/user/bookmarks', async (req, res) => {
             try {
+                const { userId } = req.query;
+                if (!userId) return res.status(200).json([]);
 
-                const dummyBookmarks = [
-                    {
-                        _id: "b_bookmark_01",
-                        userId: "user_123",
-                        book: {
-                            _id: "64f1a2b3c4d5e6f7a8b9c001", //  MongoDB ObjectId 
-                            title: "The Great Gatsby",
-                            author: "F. Scott Fitzgerald",
-                            coverImage: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=500"
-                        }
-                    },
-                    {
-                        _id: "b_bookmark_02",
-                        userId: "user_123",
-                        book: {
-                            _id: "64f1a2b3c4d5e6f7a8b9c002",
-                            title: "Sci-Fi Chronicles",
-                            author: "H. G. Wells",
-                            coverImage: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=500"
-                        }
-                    }
-                ];
+                const bookmarks = await bookmarksCollection.find({ userId }).toArray();
 
-                // Test dummy bookmarks const dummyBookmarks = [];
-                res.status(200).json(dummyBookmarks);
+                const bookmarksWithBooks = await Promise.all(
+                    bookmarks.map(async (bm) => {
+                        const book = await ebooksCollection.findOne({ _id: bm.ebookId });
+                        return { ...bm, book: book || null };
+                    })
+                );
 
+                res.status(200).json(bookmarksWithBooks);
             } catch (error) {
                 console.error("Error fetching bookmarks:", error);
                 res.status(500).json({ error: "Internal Server Error" });
             }
         });
 
-        //  (DELETE)
+        // Bookmark Remove (DELETE)
         app.delete('/user/bookmarks/:id', async (req, res) => {
             try {
                 const bookmarkId = req.params.id;
-                console.log(`Request to delete bookmark ID: ${bookmarkId}`);
+                if (!ObjectId.isValid(bookmarkId)) {
+                    return res.status(400).json({ error: "Invalid bookmark id" });
+                }
 
-                /*  MongoDB Connection
-                const result = await bookmarksCollection.deleteOne({ _id: new ObjectId(bookmarkId) });
-                */
-
+                await bookmarksCollection.deleteOne({ _id: new ObjectId(bookmarkId) });
                 res.status(200).json({ success: true, message: "Bookmark removed successfully" });
-
             } catch (error) {
                 console.error("Error deleting bookmark:", error);
                 res.status(500).json({ error: "Internal Server Error" });
             }
         });
 
+
+
         //User Profile
 
         //  User Profile Data(GET)
-        app.get('/user/profile', async (req, res) => {
-            try {
-                /* For JWT Authentication Logic:
-                const userId = req.user.id;
-                const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
-                */
+        // app.get('/user/profile', async (req, res) => {
+        //     try {
+        //         /* For JWT Authentication Logic:
+        //         const userId = req.user.id;
+        //         const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
+        //         */
 
-                // Dummy Data
-                const dummyUser = {
-                    _id: "user_123",
-                    name: "John Doe",
-                    email: "johndoe@example.com",
-                    createdAt: "2026-06-20T12:00:00.000Z"
-                };
+        //         // Dummy Data
+        //         const dummyUser = {
+        //             _id: "user_123",
+        //             name: "John Doe",
+        //             email: "johndoe@example.com",
+        //             createdAt: "2026-06-20T12:00:00.000Z"
+        //         };
 
-                res.status(200).json(dummyUser);
-            } catch (error) {
-                console.error("Error fetching profile:", error);
-                res.status(500).json({ error: "Internal Server Error" });
-            }
-        });
+        //         res.status(200).json(dummyUser);
+        //     } catch (error) {
+        //         console.error("Error fetching profile:", error);
+        //         res.status(500).json({ error: "Internal Server Error" });
+        //     }
+        // });
 
-        // User Profile Data Update
-        app.put('/user/profile', async (req, res) => {
-            try {
-                const { name } = req.body; // User Name
-                console.log(`Updating profile name to: ${name}`);
+        // // User Profile Data Update
+        // app.put('/user/profile', async (req, res) => {
+        //     try {
+        //         const { name } = req.body; // User Name
+        //         console.log(`Updating profile name to: ${name}`);
 
-                /* For Database:
-                const userId = req.user.id;
-                const result = await usersCollection.updateOne(
-                    { _id: new ObjectId(userId) },
-                    { $set: { name: name } }
-                );
-                */
+        //         /* For Database:
+        //         const userId = req.user.id;
+        //         const result = await usersCollection.updateOne(
+        //             { _id: new ObjectId(userId) },
+        //             { $set: { name: name } }
+        //         );
+        //         */
 
-                res.status(200).json({ success: true, message: "Profile updated successfully" });
-            } catch (error) {
-                console.error("Error updating profile:", error);
-                res.status(500).json({ error: "Internal Server Error" });
-            }
-        });
+        //         res.status(200).json({ success: true, message: "Profile updated successfully" });
+        //     } catch (error) {
+        //         console.error("Error updating profile:", error);
+        //         res.status(500).json({ error: "Internal Server Error" });
+        //     }
+        // });
 
         //Writer
 
         // (GET)
+        // app.get('/writer/my-books', async (req, res) => {
+        //     try {
+        //         /*  JWT Authentication Logic
+        //         const writerId = req.user.id; // Logged in writer ID
+        //         const myBooks = await ebooksCollection.find({ writerId: writerId }).toArray();
+        //         */
+
+        //         // DummyBooks
+        //         const dummyWriterBooks = [
+        //             {
+        //                 _id: "book_writer_01",
+        //                 title: "The Silent Echoes",
+        //                 category: "Mystery",
+        //                 price: 12.50,
+        //                 rating: 4.8,
+        //                 coverImage: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=500",
+        //                 status: "approved",
+        //                 writerId: "writer_123"
+        //             },
+        //             {
+        //                 _id: "book_writer_02",
+        //                 title: "Shadows of Tomorrow",
+        //                 category: "Sci-Fi",
+        //                 price: 8.99,
+        //                 rating: 0.0,
+        //                 coverImage: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=500",
+        //                 status: "pending",
+        //                 writerId: "writer_123"
+        //             }
+        //         ];
+
+
+        //         res.status(200).json(dummyWriterBooks);
+
+        //     } catch (error) {
+        //         console.error("Error fetching writer books:", error);
+        //         res.status(500).json({ error: "Internal Server Error" });
+        //     }
+        // });
+
+        // // Writer (DELETE)
+        // app.delete('/writer/books/:id', async (req, res) => {
+        //     try {
+        //         const bookId = req.params.id;
+        //         console.log(`Request to delete book ID by writer: ${bookId}`);
+
+        //         /*  MongoDB Operation Logic:
+        //         const result = await ebooksCollection.deleteOne({ _id: new ObjectId(bookId) });
+        //         */
+
+        //         res.status(200).json({ success: true, message: "Ebook deleted successfully" });
+
+        //     } catch (error) {
+        //         console.error("Error deleting book by writer:", error);
+        //         res.status(500).json({ error: "Internal Server Error" });
+        //     }
+        // });
+
+        // // Writer Book Details GET
+        // app.get('/writer/books/:id', async (req, res) => {
+        //     try {
+        //         const bookId = req.params.id;
+
+        //         /* Database Integration:
+        //         const book = await ebooksCollection.findOne({ _id: new ObjectId(bookId) });
+        //         */
+
+        //         // Dummy Books Details
+        //         const dummyBookDetails = {
+        //             _id: bookId,
+        //             title: "The Silent Echoes",
+        //             category: "Mystery",
+        //             price: 12.50
+        //         };
+
+        //         res.status(200).json(dummyBookDetails);
+        //     } catch (error) {
+        //         console.error("Error fetching book details:", error);
+        //         res.status(500).json({ error: "Internal Server Error" });
+        //     }
+        // });
+
+        // // Writer Book Info Update (PUT)
+        // app.put('/writer/books/:id', async (req, res) => {
+        //     try {
+        //         const bookId = req.params.id;
+        //         const { title, category, price } = req.body;
+
+        //         console.log(`Updating Book ID ${bookId} with data:`, { title, category, price });
+
+        //         /* Database Logic
+        //         const result = await ebooksCollection.updateOne(
+        //             { _id: new ObjectId(bookId) },
+        //             { $set: { title, category, price, status: 'pending' } } 
+        //             // Status 'pending' (bookEdit)
+        //         );
+        //         */
+
+        //         res.status(200).json({ success: true, message: "Book updated successfully" });
+        //     } catch (error) {
+        //         console.error("Error updating book details:", error);
+        //         res.status(500).json({ error: "Internal Server Error" });
+        //     }
+        // });
+
+        // //Writer POST Books
+
+        // // Writer NEW Book Upload (POST)
+        // app.post('/writer/books', async (req, res) => {
+        //     try {
+        //         const { title, category, price, coverImage } = req.body;
+
+        //         // Database Object
+        //         const newEbook = {
+        //             title,
+        //             category,
+        //             price: Number(price),
+        //             coverImage,
+        //             rating: 0.0,
+        //             status: "pending",
+        //             createdAt: new Date(),
+        //             writerId: "writer_123"
+        //         };
+
+        //         console.log("Saving new ebook to database:", newEbook);
+
+        //         /* MONGODB Collection
+        //         const result = await ebooksCollection.insertOne(newEbook);
+        //         */
+
+        //         //
+        //         res.status(201).json({
+        //             success: true,
+        //             message: "Ebook uploaded successfully and is pending for review."
+        //         });
+
+        //     } catch (error) {
+        //         console.error("Error creating new ebook:", error);
+        //         res.status(500).json({ error: "Internal Server Error" });
+        //     }
+        // });
+
+        // //Writer Sales History
+
+        // // Writer Sales (GET)
+        // app.get('/writer/sales-report', async (req, res) => {
+        //     try {
+        //         /*  JWT and MongoDB (Aggregation):
+        //         const writerId = req.user.id;
+
+        //         // purchases Collection (Only Writer Books)
+        //         const history = await purchasesCollection.find({ writerId: writerId }).sort({ purchaseDate: -1 }).toArray();
+
+        //         // Total Revenue এবং Sales Count Logic
+        //         const totalCopiesSold = history.length;
+        //         const totalRevenue = history.reduce((sum, item) => sum + item.amount, 0);
+        //         */
+
+        //         // Project Test 
+        //         const dummySalesReport = {
+        //             stats: {
+        //                 totalRevenue: 238.89,
+        //                 totalCopiesSold: 19,
+        //                 thisMonthRevenue: 48.97
+        //             },
+        //             history: [
+        //                 {
+        //                     _id: "sale_001",
+        //                     bookTitle: "The Silent Echoes",
+        //                     purchaseDate: "2026-06-19T10:15:30.000Z",
+        //                     buyerId: "user_buyer_999a",
+        //                     amount: 12.50
+        //                 },
+        //                 {
+        //                     _id: "sale_002",
+        //                     bookTitle: "The Silent Echoes",
+        //                     purchaseDate: "2026-06-14T16:45:00.000Z",
+        //                     buyerId: "user_buyer_888b",
+        //                     amount: 12.50
+        //                 },
+        //                 {
+        //                     _id: "sale_003",
+        //                     bookTitle: "Shadows of Tomorrow",
+        //                     purchaseDate: "2026-06-02T05:20:10.000Z",
+        //                     buyerId: "user_buyer_777c",
+        //                     amount: 8.99
+        //                 }
+        //             ]
+        //         };
+
+        //         // Dummy Sales Test
+        //         // const dummySalesReport = { stats: { totalRevenue: 0, totalCopiesSold: 0, thisMonthRevenue: 0 }, history: [] };
+
+        //         res.status(200).json(dummySalesReport);
+
+        //     } catch (error) {
+        //         console.error("Error generating sales report:", error);
+        //         res.status(500).json({ error: "Internal Server Error" });
+        //     }
+        // });
+
+        // //Writer Bookmarks
+        // // Writer BookMark List (GET)
+        // app.get('/writer/bookmarks', async (req, res) => {
+        //     try {
+        //         /* Database Integration Logic:
+        //         const writerId = req.user.id;
+        //         const bookmarks = await bookmarksCollection.find({ userId: writerId }).toArray();
+        //         */
+
+        //         // Dummy Data
+        //         const dummyWriterBookmarks = [
+        //             {
+        //                 _id: "wb_01",
+        //                 userId: "writer_123",
+        //                 book: {
+        //                     _id: "64f1a2b3c4d5e6f7a8b9c991",
+        //                     title: "The Art of Fiction",
+        //                     author: "John Gardner",
+        //                     coverImage: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=500"
+        //                 }
+        //             },
+        //             {
+        //                 _id: "wb_02",
+        //                 userId: "writer_123",
+        //                 book: {
+        //                     _id: "64f1a2b3c4d5e6f7a8b9c992",
+        //                     title: "Storytelling Masterclass",
+        //                     author: "Robert McKee",
+        //                     coverImage: "https://images.unsplash.com/photo-1476275466078-4007374efbbe?w=500"
+        //                 }
+        //             }
+        //         ];
+
+        //         res.status(200).json(dummyWriterBookmarks);
+        //     } catch (error) {
+        //         console.error("Error fetching writer bookmarks:", error);
+        //         res.status(500).json({ error: "Internal Server Error" });
+        //     }
+        // });
+
+        // // Writer BookMarks (DELETE)
+        // app.delete('/writer/bookmarks/:id', async (req, res) => {
+        //     try {
+        //         const bookmarkId = req.params.id;
+        //         console.log(`Deleting writer bookmark ID: ${bookmarkId}`);
+
+        //         /* Database Code
+        //         const result = await bookmarksCollection.deleteOne({ _id: new ObjectId(bookmarkId) });
+        //         */
+
+        //         res.status(200).json({ success: true, message: "Bookmark removed successfully" });
+        //     } catch (error) {
+        //         console.error("Error deleting writer bookmark:", error);
+        //         res.status(500).json({ error: "Internal Server Error" });
+        //     }
+        // });
+        //Writer Updated
+        // Writer's own books (GET)
         app.get('/writer/my-books', async (req, res) => {
             try {
-                /*  JWT Authentication Logic
-                const writerId = req.user.id; // Logged in writer ID
-                const myBooks = await ebooksCollection.find({ writerId: writerId }).toArray();
-                */
+                const { writerId } = req.query;
+                if (!writerId) return res.status(200).json([]);
 
-                // DummyBooks
-                const dummyWriterBooks = [
-                    {
-                        _id: "book_writer_01",
-                        title: "The Silent Echoes",
-                        category: "Mystery",
-                        price: 12.50,
-                        rating: 4.8,
-                        coverImage: "https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=500",
-                        status: "approved",
-                        writerId: "writer_123"
-                    },
-                    {
-                        _id: "book_writer_02",
-                        title: "Shadows of Tomorrow",
-                        category: "Sci-Fi",
-                        price: 8.99,
-                        rating: 0.0,
-                        coverImage: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=500",
-                        status: "pending",
-                        writerId: "writer_123"
-                    }
-                ];
+                const myBooks = await ebooksCollection
+                    .find({ writerId })
+                    .sort({ createdAt: -1 })
+                    .toArray();
 
-
-                res.status(200).json(dummyWriterBooks);
-
+                res.status(200).json(myBooks);
             } catch (error) {
                 console.error("Error fetching writer books:", error);
                 res.status(500).json({ error: "Internal Server Error" });
             }
         });
 
-        // Writer (DELETE)
-        app.delete('/writer/books/:id', async (req, res) => {
-            try {
-                const bookId = req.params.id;
-                console.log(`Request to delete book ID by writer: ${bookId}`);
-
-                /*  MongoDB Operation Logic:
-                const result = await ebooksCollection.deleteOne({ _id: new ObjectId(bookId) });
-                */
-
-                res.status(200).json({ success: true, message: "Ebook deleted successfully" });
-
-            } catch (error) {
-                console.error("Error deleting book by writer:", error);
-                res.status(500).json({ error: "Internal Server Error" });
-            }
-        });
-
-        // Writer Book Details GET
+        // Writer Book Details (GET)
         app.get('/writer/books/:id', async (req, res) => {
             try {
                 const bookId = req.params.id;
+                if (!ObjectId.isValid(bookId)) {
+                    return res.status(400).json({ error: "Invalid book id" });
+                }
 
-                /* Database Integration:
                 const book = await ebooksCollection.findOne({ _id: new ObjectId(bookId) });
-                */
+                if (!book) {
+                    return res.status(404).json({ error: "Book not found" });
+                }
 
-                // Dummy Books Details
-                const dummyBookDetails = {
-                    _id: bookId,
-                    title: "The Silent Echoes",
-                    category: "Mystery",
-                    price: 12.50
-                };
-
-                res.status(200).json(dummyBookDetails);
+                res.status(200).json(book);
             } catch (error) {
                 console.error("Error fetching book details:", error);
                 res.status(500).json({ error: "Internal Server Error" });
             }
         });
 
-        // Writer Book Info Update (PUT)
+        // Writer New Book Upload (POST)
+        app.post('/writer/books', async (req, res) => {
+            try {
+                const { title, category, price, coverImage, description, writerId, writerName } = req.body;
+
+                if (!title || !category || !price || !writerId) {
+                    return res.status(400).json({ error: "title, category, price and writerId are required" });
+                }
+
+                const newEbook = {
+                    title,
+                    category,
+                    description: description || "",
+                    price: Number(price),
+                    coverImage: coverImage || "",
+                    rating: 0,
+                    status: "published", // admin approval na thakle directly published
+                    isSold: false,
+                    writerId,
+                    writerName: writerName || "Unknown",
+                    createdAt: new Date(),
+                };
+
+                const result = await ebooksCollection.insertOne(newEbook);
+                res.status(201).json({
+                    success: true,
+                    message: "Ebook uploaded successfully.",
+                    bookId: result.insertedId,
+                });
+            } catch (error) {
+                console.error("Error creating new ebook:", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
+        });
+
+        // Writer Book Update (PUT)
         app.put('/writer/books/:id', async (req, res) => {
             try {
                 const bookId = req.params.id;
-                const { title, category, price } = req.body;
+                const { title, category, price, coverImage, description } = req.body;
 
-                console.log(`Updating Book ID ${bookId} with data:`, { title, category, price });
+                if (!ObjectId.isValid(bookId)) {
+                    return res.status(400).json({ error: "Invalid book id" });
+                }
 
-                /* Database Logic
+                const updateFields = {};
+                if (title !== undefined) updateFields.title = title;
+                if (category !== undefined) updateFields.category = category;
+                if (price !== undefined) updateFields.price = Number(price);
+                if (coverImage !== undefined) updateFields.coverImage = coverImage;
+                if (description !== undefined) updateFields.description = description;
+
                 const result = await ebooksCollection.updateOne(
                     { _id: new ObjectId(bookId) },
-                    { $set: { title, category, price, status: 'pending' } } 
-                    // Status 'pending' (bookEdit)
+                    { $set: updateFields }
                 );
-                */
+
+                if (result.matchedCount === 0) {
+                    return res.status(404).json({ error: "Book not found" });
+                }
 
                 res.status(200).json({ success: true, message: "Book updated successfully" });
             } catch (error) {
@@ -421,152 +751,95 @@ async function run() {
             }
         });
 
-        //Writer POST Books
-
-        // Writer NEW Book Upload (POST)
-        app.post('/writer/books', async (req, res) => {
+        // Writer Book Delete (DELETE)
+        app.delete('/writer/books/:id', async (req, res) => {
             try {
-                const { title, category, price, coverImage } = req.body;
+                const bookId = req.params.id;
+                if (!ObjectId.isValid(bookId)) {
+                    return res.status(400).json({ error: "Invalid book id" });
+                }
 
-                // Database Object
-                const newEbook = {
-                    title,
-                    category,
-                    price: Number(price),
-                    coverImage,
-                    rating: 0.0,
-                    status: "pending",
-                    createdAt: new Date(),
-                    writerId: "writer_123"
-                };
-
-                console.log("Saving new ebook to database:", newEbook);
-
-                /* MONGODB Collection
-                const result = await ebooksCollection.insertOne(newEbook);
-                */
-
-                //
-                res.status(201).json({
-                    success: true,
-                    message: "Ebook uploaded successfully and is pending for review."
-                });
-
+                await ebooksCollection.deleteOne({ _id: new ObjectId(bookId) });
+                res.status(200).json({ success: true, message: "Ebook deleted successfully" });
             } catch (error) {
-                console.error("Error creating new ebook:", error);
+                console.error("Error deleting book by writer:", error);
                 res.status(500).json({ error: "Internal Server Error" });
             }
         });
 
-        //Writer Sales History
-
-        // Writer Sales (GET)
+        // Writer Sales Report (GET) - real data from purchasesCollection
         app.get('/writer/sales-report', async (req, res) => {
             try {
-                /*  JWT and MongoDB (Aggregation):
-                const writerId = req.user.id;
-                
-                // purchases Collection (Only Writer Books)
-                const history = await purchasesCollection.find({ writerId: writerId }).sort({ purchaseDate: -1 }).toArray();
-                
-                // Total Revenue এবং Sales Count Logic
+                const { writerId } = req.query;
+                if (!writerId) {
+                    return res.status(200).json({ stats: { totalRevenue: 0, totalCopiesSold: 0, thisMonthRevenue: 0 }, history: [] });
+                }
+
+                const history = await purchasesCollection
+                    .find({ writerId })
+                    .sort({ purchaseDate: -1 })
+                    .toArray();
+
+                const totalRevenue = history.reduce((sum, item) => sum + (item.amount || 0), 0);
                 const totalCopiesSold = history.length;
-                const totalRevenue = history.reduce((sum, item) => sum + item.amount, 0);
-                */
 
-                // Project Test 
-                const dummySalesReport = {
-                    stats: {
-                        totalRevenue: 238.89,
-                        totalCopiesSold: 19,
-                        thisMonthRevenue: 48.97
-                    },
-                    history: [
-                        {
-                            _id: "sale_001",
-                            bookTitle: "The Silent Echoes",
-                            purchaseDate: "2026-06-19T10:15:30.000Z",
-                            buyerId: "user_buyer_999a",
-                            amount: 12.50
-                        },
-                        {
-                            _id: "sale_002",
-                            bookTitle: "The Silent Echoes",
-                            purchaseDate: "2026-06-14T16:45:00.000Z",
-                            buyerId: "user_buyer_888b",
-                            amount: 12.50
-                        },
-                        {
-                            _id: "sale_003",
-                            bookTitle: "Shadows of Tomorrow",
-                            purchaseDate: "2026-06-02T05:20:10.000Z",
-                            buyerId: "user_buyer_777c",
-                            amount: 8.99
-                        }
-                    ]
-                };
+                const now = new Date();
+                const thisMonthRevenue = history
+                    .filter((item) => {
+                        const d = new Date(item.purchaseDate);
+                        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+                    })
+                    .reduce((sum, item) => sum + (item.amount || 0), 0);
 
-                // Dummy Sales Test
-                // const dummySalesReport = { stats: { totalRevenue: 0, totalCopiesSold: 0, thisMonthRevenue: 0 }, history: [] };
+                const formattedHistory = history.map((item) => ({
+                    _id: item._id,
+                    bookTitle: item.ebookTitle,
+                    purchaseDate: item.purchaseDate,
+                    buyerId: item.buyerId,
+                    amount: item.amount,
+                }));
 
-                res.status(200).json(dummySalesReport);
-
+                res.status(200).json({
+                    stats: { totalRevenue, totalCopiesSold, thisMonthRevenue },
+                    history: formattedHistory,
+                });
             } catch (error) {
                 console.error("Error generating sales report:", error);
                 res.status(500).json({ error: "Internal Server Error" });
             }
         });
 
-        //Writer Bookmarks
-        // Writer BookMark List (GET)
+        // Writer Bookmarks (GET) 
         app.get('/writer/bookmarks', async (req, res) => {
             try {
-                /* Database Integration Logic:
-                const writerId = req.user.id;
+                const { writerId } = req.query;
+                if (!writerId) return res.status(200).json([]);
+
                 const bookmarks = await bookmarksCollection.find({ userId: writerId }).toArray();
-                */
 
-                // Dummy Data
-                const dummyWriterBookmarks = [
-                    {
-                        _id: "wb_01",
-                        userId: "writer_123",
-                        book: {
-                            _id: "64f1a2b3c4d5e6f7a8b9c991",
-                            title: "The Art of Fiction",
-                            author: "John Gardner",
-                            coverImage: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=500"
-                        }
-                    },
-                    {
-                        _id: "wb_02",
-                        userId: "writer_123",
-                        book: {
-                            _id: "64f1a2b3c4d5e6f7a8b9c992",
-                            title: "Storytelling Masterclass",
-                            author: "Robert McKee",
-                            coverImage: "https://images.unsplash.com/photo-1476275466078-4007374efbbe?w=500"
-                        }
-                    }
-                ];
+                const bookmarksWithBooks = await Promise.all(
+                    bookmarks.map(async (bm) => {
+                        const book = await ebooksCollection.findOne({ _id: bm.ebookId });
+                        return { ...bm, book: book || null };
+                    })
+                );
 
-                res.status(200).json(dummyWriterBookmarks);
+                res.status(200).json(bookmarksWithBooks);
             } catch (error) {
                 console.error("Error fetching writer bookmarks:", error);
                 res.status(500).json({ error: "Internal Server Error" });
             }
         });
 
-        // Writer BookMarks (DELETE)
+        // Writer Bookmarks (DELETE) - bookmarksCollection shared
         app.delete('/writer/bookmarks/:id', async (req, res) => {
             try {
                 const bookmarkId = req.params.id;
-                console.log(`Deleting writer bookmark ID: ${bookmarkId}`);
+                if (!ObjectId.isValid(bookmarkId)) {
+                    return res.status(400).json({ error: "Invalid bookmark id" });
+                }
 
-                /* Database Code
-                const result = await bookmarksCollection.deleteOne({ _id: new ObjectId(bookmarkId) });
-                */
-
+                await bookmarksCollection.deleteOne({ _id: new ObjectId(bookmarkId) });
                 res.status(200).json({ success: true, message: "Bookmark removed successfully" });
             } catch (error) {
                 console.error("Error deleting writer bookmark:", error);
